@@ -40,3 +40,5 @@ Checklist to satisfy assessment criteria
 - Techniques and evaluation metrics fit the problem; multiple models and parameter variations tested.
 - Choices are explained in the report; structure and flow are clear.
 - Team can justify design decisions and discuss limitations in an oral defense.
+
+- Feature to be added: seasonality discount based on the purchase date
