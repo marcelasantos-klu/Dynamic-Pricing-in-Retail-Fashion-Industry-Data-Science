@@ -124,6 +124,121 @@ top_3_values  Entire home/apt: 32648; Private room: 18693; S...  ...  weekends: 
 
 [2 rows x 6 columns] 
 
+=== Boolean columns value counts (True/False) ===
+room_shared: {False: 51341, True: 366}
+room_private: {False: 33014, True: 18693}
+host_is_superhost: {False: 38475, True: 13232}
+
+=== room_type value counts ===
+room_type
+Entire home/apt    32648
+Private room       18693
+Shared room          366
+Name: count, dtype: int64
+
+=== Value counts for selected discrete columns ===
+bedrooms:
+bedrooms
+0      4485
+1     36333
+2      9290
+3      1477
+4        96
+5        10
+6         2
+8         2
+9        10
+10        2
+Name: count, dtype: int64
+person_capacity:
+person_capacity
+2.0    24333
+3.0     6165
+4.0    14000
+5.0     2935
+6.0     4274
+Name: count, dtype: int64
+biz:
+biz
+0    33599
+1    18108
+Name: count, dtype: int64
+multi:
+multi
+0    36642
+1    15065
+Name: count, dtype: int64
+
+=== Value counts for rating columns ===
+cleanliness_rating:
+cleanliness_rating
+2.0       143
+3.0        10
+4.0       143
+5.0        86
+6.0       501
+7.0       947
+8.0      4352
+9.0     15458
+10.0    30067
+Name: count, dtype: int64
+guest_satisfaction_overall:
+guest_satisfaction_overall
+20.0       155
+30.0         8
+40.0       123
+44.0         2
+46.0         1
+47.0        16
+50.0        44
+53.0        14
+54.0         1
+55.0         4
+56.0         5
+57.0         5
+60.0       475
+61.0         1
+62.0         4
+63.0        21
+64.0        13
+65.0        32
+66.0         6
+67.0       100
+68.0        33
+69.0        32
+70.0       269
+71.0        51
+72.0        73
+73.0       186
+74.0        81
+75.0       174
+76.0       173
+77.0       166
+78.0       177
+79.0       163
+80.0      2059
+81.0       210
+82.0       354
+83.0       589
+84.0       665
+85.0       774
+86.0       772
+87.0      1259
+88.0      1365
+89.0      1309
+90.0      2607
+91.0      1799
+92.0      2025
+93.0      3329
+94.0      2615
+95.0      3299
+96.0      3532
+97.0      3626
+98.0      3889
+99.0      2341
+100.0    10681
+Name: count, dtype: int64
+
 === Data quality signals ===
 
 Skewed numeric columns (|skew|>1):

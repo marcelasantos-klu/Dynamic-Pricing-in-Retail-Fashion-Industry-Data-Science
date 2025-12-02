@@ -19,7 +19,7 @@ DATA_PATH = "FinalDataSet.csv"
 TARGET_COL = None  # e.g., "price" or "label"; set to None if there is no target
 REVENUE_COL = "realSum"  # column representing revenue
 OUTPUT_TXT = "eda_terminal_output.txt"  # capture all printed output here
-SHOW_PLOTS = False  # set True to open plot windows; False keeps run headless for faster completion
+SHOW_PLOTS = True  # set True to open plot windows; False keeps run headless for faster completion
 
 
 def main() -> None:
@@ -86,6 +86,41 @@ def main() -> None:
 
             cat_summary = df[categorical_cols].apply(summarize_cat)
             log(cat_summary, "\n")
+
+        # Boolean value distribution: how often True/False per boolean column
+        bool_cols = df.select_dtypes(include=["bool"]).columns.tolist()
+        if bool_cols:
+            log("=== Boolean columns value counts (True/False) ===")
+            for col in bool_cols:
+                counts = df[col].value_counts(dropna=False)
+                log(f"{col}: {counts.to_dict()}")
+            log()
+
+        # room_type distribution to see category frequencies
+        if "room_type" in df.columns:
+            log("=== room_type value counts ===")
+            log(df["room_type"].value_counts(dropna=False))
+            log()
+
+        # Value counts for selected discrete columns
+        discrete_cols = ["bedrooms", "person_capacity", "biz", "multi"]
+        present_discrete = [c for c in discrete_cols if c in df.columns]
+        if present_discrete:
+            log("=== Value counts for selected discrete columns ===")
+            for col in present_discrete:
+                counts = df[col].value_counts(dropna=False).sort_index()
+                log(f"{col}:\n{counts}")
+            log()
+
+        # Value counts for key rating columns to see score distributions
+        rating_cols = ["cleanliness_rating", "guest_satisfaction_overall"]
+        rating_present = [c for c in rating_cols if c in df.columns]
+        if rating_present:
+            log("=== Value counts for rating columns ===")
+            for col in rating_present:
+                counts = df[col].value_counts(dropna=False).sort_index()
+                log(f"{col}:\n{counts}")
+            log()
 
         # Quick data quality signals: missingness and skewness
         log("=== Data quality signals ===")
