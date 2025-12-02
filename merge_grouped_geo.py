@@ -36,6 +36,16 @@ DROP_AFTER = ["DayType", "room_shared", "room_private", "rest_index", "attr_inde
 def main() -> None:
     df = pd.read_csv(INPUT_PATH)
 
+    # Convert boolean columns to binary ints (True->1, False->0) for consistency
+    bool_cols = df.select_dtypes(include=["bool"]).columns.tolist()
+    if bool_cols:
+        df[bool_cols] = df[bool_cols].astype(int)
+
+    # Ensure biz is binary 0/1 even if typed as bool
+    if "biz" in df.columns:
+        if df["biz"].dtype == "bool":
+            df["biz"] = df["biz"].astype(int)
+
     missing_group = [c for c in GROUP_COLS if c not in df.columns]
     missing_mean = [c for c in MEAN_COLS if c not in df.columns]
     if missing_group or missing_mean:
