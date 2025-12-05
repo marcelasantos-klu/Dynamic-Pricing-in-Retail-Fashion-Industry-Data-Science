@@ -33,7 +33,7 @@ MEAN_COLS = [
     "rest_index_norm",
 ]
 
-DROP_AFTER = ["DayType", "room_shared", "room_private", "rest_index", "attr_index", "multi", "Safety Index"]
+DROP_AFTER = ["DayType", "room_shared", "room_private", "rest_index", "attr_index", "multi", "Safety Index", "biz"]
 
 
 def main() -> None:

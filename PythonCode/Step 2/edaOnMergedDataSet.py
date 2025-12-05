@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # Plot style configuration to keep charts readable and consistent
 sns.set_theme(style="whitegrid")
@@ -15,14 +16,25 @@ plt.rcParams.update({"figure.autolayout": True, "figure.figsize": (8, 5)})
 plt.rcParams.update({"figure.max_open_warning": 200})  # avoid noisy warnings with many plots
 
 # --- Configuration ---
-DATA_PATH = "FinalDataSet.csv"
+# Try both root and FinalDataSetEDA/ paths to be robust to the recent file move.
+DATA_CANDIDATES = [
+    Path("FinalDataSet.csv"),
+    Path("FinalDataSetEDA/FinalDataSet.csv"),
+]
+DATA_PATH = None  # resolved at runtime
 TARGET_COL = None  # e.g., "price" or "label"; set to None if there is no target
 REVENUE_COL = "realSum"  # column representing revenue
 OUTPUT_TXT = "eda_terminal_output.txt"  # capture all printed output here
-SHOW_PLOTS = True  # set True to open plot windows; False keeps run headless (and CI-friendly) for faster completion
+SHOW_PLOTS = False  # keep headless to avoid blocking on many plot windows
 
 
 def main() -> None:
+    # Resolve dataset path
+    global DATA_PATH
+    DATA_PATH = next((p for p in DATA_CANDIDATES if p.exists()), None)
+    if DATA_PATH is None:
+        raise SystemExit(f"No input dataset found. Checked: {DATA_CANDIDATES}")
+
     # Buffer stdout so the same text goes both to console and to file at the end.
     buffer = io.StringIO()
 
