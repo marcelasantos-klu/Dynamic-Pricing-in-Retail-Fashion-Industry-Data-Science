@@ -100,7 +100,28 @@ def load_data() -> pd.DataFrame:
 
 def prompt_split_strategy(default: str = DEFAULT_SPLIT_STRATEGY) -> str:
     """
-    Ask the user to pick a split strategy at runtime.
+    Interactively ask the user to choose a train/test split strategy at runtime.
+
+    The available options are taken from the global SPLIT_STRATEGIES dictionary.
+    The function prints a numbered list of all keys and lets the user either:
+
+    - enter a number (1..N) corresponding to a listed strategy, or
+    - type the strategy name directly, or
+    - press ENTER to accept the provided default.
+
+    If the input is invalid or cannot be parsed, the default strategy is used.
+
+    Parameters
+    ----------
+    default : str, optional
+        The strategy key to fall back to when the user presses ENTER or enters
+        an invalid value. Defaults to DEFAULT_SPLIT_STRATEGY.
+
+    Returns
+    -------
+    str
+        The selected strategy key, guaranteed to be a valid key in
+        SPLIT_STRATEGIES.
     """
     options = list(SPLIT_STRATEGIES.keys())
     print("Select split strategy:")
@@ -135,12 +156,32 @@ def make_train_test_split(
     strategy_key: Optional[str] = None,
 ):
     """
-    Create a train/test split based on the configured SPLIT_STRATEGY.
+    Create a train/test split for features and log-transformed targets.
+
+    The concrete split configuration (test size, random seed, and whether to
+    stratify by city) is taken from the SPLIT_STRATEGIES dictionary. Stratified
+    splitting ensures that the relative city distribution is preserved in the
+    train and test sets, which is important for fair model evaluation when
+    different cities have very different price levels.
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        Feature matrix containing all predictors except the target.
+    y_log : pd.Series
+        Log-transformed target variable (log1p(realSum)).
+    city_series : pd.Series
+        City labels corresponding to each row in X/y_log. Used for stratification
+        when the chosen strategy requires it.
+    strategy_key : str, optional
+        Key into SPLIT_STRATEGIES that selects the split configuration.
+        If None, the globally configured SPLIT_STRATEGY is used.
 
     Returns
     -------
     tuple
-        X_train, X_test, y_train_log, y_test_log
+        A 4-tuple (X_train, X_test, y_train_log, y_test_log) produced by
+        sklearn.model_selection.train_test_split.
     """
     key = strategy_key or SPLIT_STRATEGY
     cfg = SPLIT_STRATEGIES.get(key)
@@ -162,7 +203,7 @@ def make_train_test_split(
 # ===============================================================
 
 def build_preprocessor(feature_df: pd.DataFrame) -> ColumnTransformer:
-    categorical_features = ["room_type", "City"]
+    categorical_features = ["room_type", "City", "metro_dist_bucket"]
     numeric_features = [c for c in feature_df.columns if c not in categorical_features]
 
     num_pipe = Pipeline([
@@ -305,6 +346,34 @@ def main(split_strategy: Optional[str] = None, prompt_for_split: bool = False) -
     df = load_data()
     df = remove_outliers_iqr(df, col="realSum", k=1.5)
 
+    # -------- Feature engineering on existing columns --------
+    df["beds_per_person"] = (df["bedrooms"] / df["person_capacity"]).replace([np.inf, -np.inf], np.nan)
+    df["capacity_per_bedroom"] = df["person_capacity"] / (df["bedrooms"] + 1)
+    df["capacity_gt2"] = (df["person_capacity"] >= 3).astype(int)
+    df["is_studio"] = (df["bedrooms"] == 0).astype(int)
+    df["log_metro_dist"] = np.log1p(df["metro_dist"])
+    df["log_dist_center"] = np.log1p(df["dist"])
+    df["amenity_score"] = (df["attr_index_norm"] + df["rest_index_norm"]) / 2
+    if "Safety_Index" in df.columns:
+        df["net_safety_score"] = df["Safety_Index"] - df["Crime_Index"]
+    else:
+        df["net_safety_score"] = -df["Crime_Index"]
+
+    # Robust encoding of host_is_superhost (string / boolean / numeric variants)
+    super_raw = df["host_is_superhost"].astype(str).str.strip().str.lower()
+    super_map = {"t": 1, "true": 1, "y": 1, "yes": 1, "1": 1}
+    df["host_is_superhost"] = super_raw.map(super_map).fillna(0).astype(int)
+
+    max_dist = df["metro_dist"].max()
+    if pd.isna(max_dist) or max_dist <= 2:
+        max_dist = 2.0001
+    df["metro_dist_bucket"] = pd.cut(
+        df["metro_dist"],
+        bins=[-0.01, 0.5, 2, max_dist],
+        labels=["near", "mid", "far"],
+        include_lowest=True,
+    )
+
     # Targets
     y_raw = df["realSum"]
     y_log = np.log1p(y_raw)
@@ -387,7 +456,9 @@ def main(split_strategy: Optional[str] = None, prompt_for_split: bool = False) -
 
         # Predict → log → raw
         preds_log = pipe.predict(X_test)
-        preds_log = np.clip(preds_log, None, 20)
+        # Clip predictions in log-space to avoid exploding or negative raw prices.
+        # Lower bound 0 → expm1(0) = 0 Euro, upper bound 20 → ~4.85 million Euro.
+        preds_log = np.clip(preds_log, 0, 20)
         preds_raw = np.expm1(preds_log)
 
         # Metrics (raw scale)
