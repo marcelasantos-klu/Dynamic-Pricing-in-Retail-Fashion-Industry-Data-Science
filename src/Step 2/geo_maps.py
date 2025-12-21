@@ -3,10 +3,12 @@ City-level map generation helper for EDA.
 
 Purpose
 -------
-This module generates **per-city geographic maps** of Airbnb listings to support
-exploratory data analysis (EDA). Each city is visualized on an OpenStreetMap basemap,
+This module generates **per-city geographic maps** of Airbnb listings. 
+Each city is visualized on an OpenStreetMap basemap,
 with listings plotted by latitude/longitude and optionally colored by (log-scaled)
 revenue.
+
+And I kind thought that it WAS REALLY COOL TO SEE IT :) (SHAYAN)
 
 Key Design Choices
 ------------------
@@ -15,10 +17,7 @@ Key Design Choices
 - Performance: optional sampling to cap the number of plotted points.
 - Robustness: graceful fallbacks if Plotly/Kaleido are not installed.
 
-Typical Use
------------
-- Called from an EDA pipeline to quickly inspect spatial concentration patterns.
-- Can also be run directly as a script (see `__main__` block).
+
 """
 from __future__ import annotations
 

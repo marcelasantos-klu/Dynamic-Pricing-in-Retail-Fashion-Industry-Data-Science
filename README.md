@@ -5,7 +5,7 @@ Prerequisites: Python 3.9+ and Git installed locally. In VS Code, use the integr
 1) Clone the repository  
 ```bash
 git clone https://github.com/marcelasantos-klu/Aribnb-Crime-Price-Predictor.git
-cd Dynamic-Pricing-in-Retail-Fashion-Industry-Data-Science
+cd Aribnb-Crime-Price-Predictor
 ```
 
 2) Create and activate a virtual environment (Python 3.9+ recommended)  

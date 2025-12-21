@@ -370,6 +370,7 @@ def train_for_split(
             random_seed=RANDOM_STATE,
         )
 
+    all_city_scores: Dict[str, pd.DataFrame] = {}
     # Baseline: predict using the mean TRAIN revenue per city (fallback to global mean).
     baseline_name = "City-mean Baseline"
     global_mean = y_train_raw.mean()
@@ -429,6 +430,17 @@ def train_for_split(
     plt.close(fig)
     print(f"Saved RMSE-by-bucket plot → {bucket_path}")
 
+    # Predicted vs actual scatter for the baseline (multiple filenames for easy discovery)
+    safe_baseline = baseline_name.replace(" ", "_").lower()
+    pva_names = [
+        plots_dir / f"pred_vs_actual_{safe_baseline}.png",
+        plots_dir / "pred_vs_actual_city_mean_baseline.png",
+        plots_dir / "pred_vs_actual_city_mean.png",
+    ]
+    for p in pva_names:
+        plot_pred_vs_actual(y_test_raw, baseline_preds, baseline_name, p)
+        print(f"Saved predicted-vs-actual plot → {p}")
+
     # Include the city-mean baseline in the comparison table/plot (train metrics not applicable).
     results = [
         {
@@ -439,7 +451,7 @@ def train_for_split(
             "Train_R2": np.nan,
         }
     ]
-    all_city_scores: Dict[str, pd.DataFrame] = {}
+    all_city_scores[baseline_name] = baseline_city_scores
 
     # Train and evaluate each model using the same preprocessing + evaluation protocol.
     for model_name, factory in model_factories.items():
